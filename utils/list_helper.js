@@ -1,3 +1,6 @@
+var _ = require("lodash");
+var fp = require("lodash/fp");
+
 const dummy = (blogs) => {
   return 1;
 };
@@ -18,8 +21,17 @@ const favouriteBlog = (blogs) =>
     }))
     .reduce((max, blog) => (max.likes > blog.likes ? max : blog));
 
+
+const mostBlogs = fp.flow(
+    fp.countBy("author"), // count by name
+    fp.toPairs, // convert to [key, value] pairs
+    fp.maxBy(fp.tail), // find the max by the value (tail)
+    fp.values// get the key (head)
+  );
+
 module.exports = {
   dummy,
   totalLikes,
   favouriteBlog,
+  mostBlogs,
 };
