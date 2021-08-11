@@ -27,6 +27,12 @@ test("initial blogs are present", async () => {
   expect(response.body).toHaveLength(helper.initialBlogs.length);
 });
 
+test("property id exists", async () => {
+  const response = await api.get("/api/blogs");
+  expect(response.body[0].id).toBeDefined();
+});
+
+
 afterAll(() => {
   mongoose.connection.close();
 });
