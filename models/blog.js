@@ -18,8 +18,6 @@ mongoose
     logger.error("error connecting to MongoDB:", error.message);
   });
 
-
-
 const blogSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -36,6 +34,7 @@ const blogSchema = new mongoose.Schema({
   likes: {
     type: Number,
   },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 });
 
 const Blog = mongoose.model("Blog", blogSchema);
