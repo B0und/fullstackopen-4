@@ -1,0 +1,31 @@
+# create user
+post http://localhost:3003/api/users
+Content-Type: application/json
+
+{
+    "username" : "user2",
+    "name" : "john",
+    "password" : "user2pw"
+}
+
+###
+# login
+post http://localhost:3003/api/login
+Content-Type: application/json
+
+{
+  "username": "user1",
+  "password":"user1pw"
+}
+
+###
+
+post http://localhost:3003/api/blogs
+Content-Type: application/json
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InVzZXIxIiwiaWQiOiI2MTFlYTdkYzQ3ZWE5ZmE3OGQzOTJmZTEiLCJpYXQiOjE2MjkzOTkwMzksImV4cCI6MTYyOTQwMjYzOX0.c12PFq0Z4Eg15eBnTe8OXmW97sL-azV_TWuzaM6pjnk
+
+{
+  "title": "Random blog2",
+  "author": "2222222",
+  "url": "22.22222"
+}
