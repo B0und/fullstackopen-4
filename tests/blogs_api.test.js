@@ -3,14 +3,29 @@ const mongoose = require("mongoose");
 const helper = require("./test_helper");
 const app = require("../app");
 const api = supertest(app);
-
+const bcrypt = require("bcrypt");
 const Blog = require("../models/blog");
+const User = require("../models/user");
 
 beforeEach(async () => {
-  await Blog.deleteMany({});
+  // add user
+  await User.deleteMany({});
+  const passwordHash = await bcrypt.hash("sekret", 10);
+  const user = new User({
+    username: "611d455d84e90383f6bb6872",
+    name: "matt",
+    passwordHash,
+  });
+  await user.save();
 
+  const users = await helper.usersInDb();
+  const userId = users[0].id;
+
+  // add blogs
+  await Blog.deleteMany({});
   for (let blog of helper.initialBlogs) {
     let blogObject = new Blog(blog);
+    blogObject.userId = userId;
     await blogObject.save();
   }
 });
@@ -33,10 +48,14 @@ test("property id exists", async () => {
 });
 
 test("a valid blog can be added ", async () => {
+  const users = await helper.usersInDb();
+  const userId = users[0].id;
+
   const newBlog = {
     title: "my new coding routine",
     author: "anon",
     url: "localhost",
+    userId: userId,
   };
 
   await api

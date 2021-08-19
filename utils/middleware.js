@@ -21,6 +21,10 @@ const errorHandler = (error, request, response, next) => {
   } else if (error.name === 'ValidationError') {
     return response.status(400).json({ error: error.message })
   }
+  else if (error.name === 'TypeError') {
+    return response.status(400).json({ error: error.message })
+  }
+  
 
   next(error)
 }
