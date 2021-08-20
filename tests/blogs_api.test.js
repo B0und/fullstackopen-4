@@ -14,7 +14,6 @@ const User = require("../models/user");
 let JWT_TOKEN;
 
 beforeEach(async () => {
-  // add blogs
   await User.deleteMany({});
   await Blog.deleteMany({});
   await Blog.insertMany(helper.authBlogs);
