@@ -4,6 +4,7 @@ const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 const helper = require("../tests/test_helper");
 const logger = require("../utils/logger");
+const { userExtractor } = require("../utils/middleware");
 
 const extractIdFromToken = (token) => {
   const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
@@ -18,48 +19,35 @@ blogsRouter.get("/", async (request, response) => {
   response.json(blogs);
 });
 
-blogsRouter.post("/", async (request, response) => {
+blogsRouter.post("/", userExtractor, async (request, response) => {
   const body = request.body;
-
-  const decodedId = extractIdFromToken(body.token);
-  const user = await User.findById(decodedId);
 
   const blog = new Blog({
     title: body.title,
     author: body.author,
     url: body.url,
     likes: 0,
-    user: user,
+    user: body.user,
   });
 
-  // add user info to blog obj
-  // blog.user = user;
   const savedBlog = await blog.save();
 
   // assign new blog to user
-  user.blogs = user.blogs.concat(savedBlog);
-  await user.save();
+  body.user.blogs = body.user.blogs.concat(savedBlog);
+  await body.user.save();
 
   response.json(savedBlog);
 });
 
-blogsRouter.delete("/:id", async (request, response) => {
-  const decodedId = extractIdFromToken(request.body.token);
-  const user = await User.findById(decodedId);
-
+blogsRouter.delete("/:id", userExtractor, async (request, response) => {
   const blog = await Blog.findById(request.params.id);
-  console.log("INFO:");
-  console.log(`${blog.user.toString()} ${typeof(blog.user.toString())}`);
-  console.log(`${user.id} ${typeof(user.id)}`);
 
-  if (blog.user.toString() === user.id) {
+  if (blog.user.toString() === request.body.user.id) {
     await Blog.findByIdAndRemove(request.params.id);
     response.status(204).end();
-  }
-  else {
+  } else {
     response.status(401).end();
   }
-
 });
 
 blogsRouter.put("/:id", async (request, response) => {
