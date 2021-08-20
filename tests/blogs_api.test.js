@@ -13,8 +13,12 @@ const User = require("../models/user");
 
 let JWT_TOKEN;
 
-beforeAll(async () => {
+beforeEach(async () => {
+  // add blogs
   await User.deleteMany({});
+  await Blog.deleteMany({});
+  await Blog.insertMany(helper.authBlogs);
+
   const passwordHash = await bcrypt.hash("root", 10);
   const user = new User({
     username: "root",
@@ -28,22 +32,7 @@ beforeAll(async () => {
     password: "root",
   });
 
-  // console.log(response);
   JWT_TOKEN = response.body.token;
-});
-
-beforeEach(async () => {
-  // add blogs
-  await Blog.deleteMany({});
-  await Blog.insertMany(helper.authBlogs);
-
-  // const users = await helper.usersInDb();
-
-  // for (let blog of helper.authBlogs) {
-  //   blog.user = users[0].id;
-  //   let blogObject = new Blog(blog);
-  //   await blogObject.save();
-  // }
 });
 
 test("blogs are returned as json", async () => {
@@ -65,19 +54,18 @@ test("property id exists", async () => {
 
 describe("Auth API tests", () => {
   test("a valid blog can be added ", async () => {
-    // const savedUser = await User.find({ username: "root" });
 
     const newBlog = {
       title: "somerandomtext idk",
       author: "anon",
       url: "localhost",
+      likes: 0,
     };
 
     await api
       .post("/api/blogs/")
       .set({ Authorization: `bearer ${JWT_TOKEN}` })
       .send(newBlog)
-      .expect((resp) => console.log(resp))
       .expect(200)
       .expect("Content-Type", /application\/json/);
 
@@ -92,6 +80,25 @@ describe("Auth API tests", () => {
     // test if the initial number of likes is 0
     expect(blogsInDb[blogsInDb.length - 1].likes).toBe(0);
   }, 10000);
+
+  test("blog with wrong token is not added", async () => {
+    const newBlog = {
+      title: "somerandomtext idk",
+      author: "anon",
+      url: "localhost",
+      likes: 0,
+    };
+
+    await api
+      .post("/api/blogs/")
+      .set({ Authorization: `bearer FakeId` })
+      .send(newBlog)
+      .expect(401);
+
+    const blogsInDb = await helper.blogsInDb();
+    expect(blogsInDb).toHaveLength(helper.authBlogs.length);
+  });
+
 
   test("blog without content is not added", async () => {
     const newBlog = {

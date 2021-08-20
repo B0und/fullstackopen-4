@@ -22,7 +22,7 @@ Content-Type: application/json
 
 post http://localhost:3003/api/blogs
 Content-Type: application/json
-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InVzZXIyIiwiaWQiOiI2MTFlYTdmMjQ3ZWE5ZmE3OGQzOTJmZTYiLCJpYXQiOjE2Mjk0NTM2NjgsImV4cCI6MTYyOTQ1NzI2OH0.00v6D-7kRfbmKBUMqwKPRgg77s-nKn_j_hvcfawQemk
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InVzZXIyIiwiaWQiOiI2MTFlYTdmMjQ3ZWE5ZmE3OGQzOTJmZTYiLCJpYXQiOjE2Mjk0NzM5NDQsImV4cCI6MTYyOTQ3NzU0NH0.3HR4BflvgUAT2cPGM-pEKY0hcFWlb6KptUfT97dFkH0
 
 {
   "title": "NEW TEST DELTEEEEEEEEEEEEEEEEEEEEEE MEEEEEE",

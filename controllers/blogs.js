@@ -27,13 +27,13 @@ blogsRouter.post("/", userExtractor, async (request, response) => {
     author: body.author,
     url: body.url,
     likes: 0,
-    user: body.user,
+    user: body.user._id,
   });
 
   const savedBlog = await blog.save();
 
   // assign new blog to user
-  body.user.blogs = body.user.blogs.concat(savedBlog);
+  body.user.blogs = body.user.blogs.concat(savedBlog._id);
   await body.user.save();
 
   response.json(savedBlog);
