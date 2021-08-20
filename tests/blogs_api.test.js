@@ -1,33 +1,49 @@
 const supertest = require("supertest");
+
 const mongoose = require("mongoose");
+
 const helper = require("./test_helper");
+
 const app = require("../app");
 const api = supertest(app);
 const bcrypt = require("bcrypt");
+
 const Blog = require("../models/blog");
 const User = require("../models/user");
 
-beforeEach(async () => {
-  // add user
+let JWT_TOKEN;
+
+beforeAll(async () => {
   await User.deleteMany({});
-  const passwordHash = await bcrypt.hash("sekret", 10);
+  const passwordHash = await bcrypt.hash("root", 10);
   const user = new User({
-    username: "611d455d84e90383f6bb6872",
+    username: "root",
     name: "matt",
     passwordHash,
   });
   await user.save();
 
-  const users = await helper.usersInDb();
-  const userId = users[0].id;
+  const response = await api.post("/api/login/").send({
+    username: "root",
+    password: "root",
+  });
 
+  // console.log(response);
+  JWT_TOKEN = response.body.token;
+});
+
+beforeEach(async () => {
   // add blogs
   await Blog.deleteMany({});
-  for (let blog of helper.initialBlogs) {
-    let blogObject = new Blog(blog);
-    blogObject.userId = userId;
-    await blogObject.save();
-  }
+  await Blog.insertMany(helper.authBlogs);
+
+  // const users = await helper.usersInDb();
+
+  // for (let blog of helper.authBlogs) {
+  //   blog.user = users[0].id;
+  //   let blogObject = new Blog(blog);
+  //   await blogObject.save();
+  // }
 });
 
 test("blogs are returned as json", async () => {
@@ -39,7 +55,7 @@ test("blogs are returned as json", async () => {
 
 test("initial blogs are present", async () => {
   const response = await api.get("/api/blogs");
-  expect(response.body).toHaveLength(helper.initialBlogs.length);
+  expect(response.body).toHaveLength(helper.authBlogs.length);
 });
 
 test("property id exists", async () => {
@@ -47,44 +63,50 @@ test("property id exists", async () => {
   expect(response.body[0].id).toBeDefined();
 });
 
-test("a valid blog can be added ", async () => {
-  const users = await helper.usersInDb();
-  const userId = users[0].id;
+describe("Auth API tests", () => {
+  test("a valid blog can be added ", async () => {
+    // const savedUser = await User.find({ username: "root" });
 
-  const newBlog = {
-    title: "my new coding routine",
-    author: "anon",
-    url: "localhost",
-    userId: userId,
-  };
+    const newBlog = {
+      title: "somerandomtext idk",
+      author: "anon",
+      url: "localhost",
+    };
 
-  await api
-    .post("/api/blogs")
-    .send(newBlog)
-    .expect(200)
-    .expect("Content-Type", /application\/json/);
+    await api
+      .post("/api/blogs/")
+      .set({ Authorization: `bearer ${JWT_TOKEN}` })
+      .send(newBlog)
+      .expect((resp) => console.log(resp))
+      .expect(200)
+      .expect("Content-Type", /application\/json/);
 
-  // test that blogs amount increased
-  const blogsInDb = await helper.blogsInDb();
-  expect(blogsInDb).toHaveLength(helper.initialBlogs.length + 1);
+    // test that blogs amount increased
+    const blogsInDb = await helper.blogsInDb();
+    expect(blogsInDb).toHaveLength(helper.authBlogs.length + 1);
 
-  // test that the last added blog title is correct
-  const titles = blogsInDb.map((b) => b.title);
-  expect(titles).toContain("my new coding routine");
+    // test that the last added blog title is correct
+    const titles = blogsInDb.map((b) => b.title);
+    expect(titles).toContain("somerandomtext idk");
 
-  // test if the initial number of likes is 0
-  expect(blogsInDb[blogsInDb.length - 1].likes).toBe(0);
-});
+    // test if the initial number of likes is 0
+    expect(blogsInDb[blogsInDb.length - 1].likes).toBe(0);
+  }, 10000);
 
-test("blog without content is not added", async () => {
-  const newBlog = {
-    url: "ababab",
-  };
+  test("blog without content is not added", async () => {
+    const newBlog = {
+      url: "333333333333",
+    };
 
-  await api.post("/api/blogs").send(newBlog).expect(400);
+    await api
+      .post("/api/blogs/")
+      .set({ Authorization: `bearer ${JWT_TOKEN}` })
+      .send(newBlog)
+      .expect(400);
 
-  const blogsInDb = await helper.blogsInDb();
-  expect(blogsInDb).toHaveLength(helper.initialBlogs.length);
+    const blogsInDb = await helper.blogsInDb();
+    expect(blogsInDb).toHaveLength(helper.authBlogs.length);
+  });
 });
 
 afterAll(() => {
