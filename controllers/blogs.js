@@ -6,14 +6,6 @@ const helper = require("../tests/test_helper");
 const logger = require("../utils/logger");
 const { userExtractor } = require("../utils/middleware");
 
-const extractIdFromToken = (token) => {
-  const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
-  if (!token || !decodedToken.id) {
-    return response.status(401).json({ error: "token missing or invalid" });
-  }
-  return decodedToken.id;
-};
-
 blogsRouter.get("/", async (request, response) => {
   const blogs = await Blog.find({}).populate("user", { name: 1, username: 1 });
   response.json(blogs);
@@ -27,7 +19,7 @@ blogsRouter.post("/", userExtractor, async (request, response) => {
     author: body.author,
     url: body.url,
     likes: 0,
-    user: body.user._id,
+   user: body.user._id,
   });
 
   const savedBlog = await blog.save();
@@ -35,6 +27,8 @@ blogsRouter.post("/", userExtractor, async (request, response) => {
   // assign new blog to user
   body.user.blogs = body.user.blogs.concat(savedBlog._id);
   await body.user.save();
+
+  
 
   response.json(savedBlog);
 });

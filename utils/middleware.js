@@ -53,8 +53,6 @@ const userExtractor = async (req, res, next) => {
 
   const user = await User.findById(decodedToken.id);
   req.body.user = user;
-  logger.info("IN MW:");
-  logger.info(user);
   next();
 };
 
